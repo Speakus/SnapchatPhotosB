@@ -39,10 +39,16 @@ class View2 : UIViewController, UIImagePickerControllerDelegate, UINavigationCon
         captureSession = AVCaptureSession()
         captureSession?.sessionPreset = AVCaptureSessionPreset1920x1080
         
-        var backCamera = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
+        let backCamera = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
         
         var error : NSError?
-        var input = AVCaptureDeviceInput(device: backCamera, error: &error)
+        var input: AVCaptureDeviceInput!
+        do {
+            input = try AVCaptureDeviceInput(device: backCamera)
+        } catch let error1 as NSError {
+            error = error1
+            input = nil
+        }
         
         if (error == nil && captureSession?.canAddInput(input) != nil){
             
@@ -55,13 +61,14 @@ class View2 : UIViewController, UIImagePickerControllerDelegate, UINavigationCon
                 captureSession?.addOutput(stillImageOutput)
                 
                 previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-                previewLayer?.videoGravity = AVLayerVideoGravityResizeAspect
-                previewLayer?.connection.videoOrientation = AVCaptureVideoOrientation.Portrait
-                cameraView.layer.addSublayer(previewLayer)
+                if let layer = previewLayer {
+                    layer.videoGravity = AVLayerVideoGravityResizeAspect
+                    layer.connection.videoOrientation = AVCaptureVideoOrientation.Portrait
+                    cameraView.layer.addSublayer(layer)
+                }
                 captureSession?.startRunning()
-                
             }
-            
+
             
         }
         
@@ -80,11 +87,11 @@ class View2 : UIViewController, UIImagePickerControllerDelegate, UINavigationCon
                 if sampleBuffer != nil {
                     
                     
-                    var imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(sampleBuffer)
-                    var dataProvider  = CGDataProviderCreateWithCFData(imageData)
-                    var cgImageRef = CGImageCreateWithJPEGDataProvider(dataProvider, nil, true, kCGRenderingIntentDefault)
+                    let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(sampleBuffer)
+                    let dataProvider  = CGDataProviderCreateWithCFData(imageData)
+                    let cgImageRef = CGImageCreateWithJPEGDataProvider(dataProvider, nil, true, CGColorRenderingIntent.RenderingIntentDefault)!
                     
-                    var image = UIImage(CGImage: cgImageRef, scale: 1.0, orientation: UIImageOrientation.Right)
+                    let image = UIImage(CGImage: cgImageRef, scale: 1.0, orientation: UIImageOrientation.Right)
                     
                     self.tempImageView.image = image
                     self.tempImageView.hidden = false
@@ -116,7 +123,7 @@ class View2 : UIViewController, UIImagePickerControllerDelegate, UINavigationCon
         
     }
     
-    override func touchesBegan(touches: Set<NSObject>, withEvent event: UIEvent) {
+    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
         didPressTakeAnother()
     }
     
