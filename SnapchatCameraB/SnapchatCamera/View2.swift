@@ -28,18 +28,18 @@ class View2 : UIViewController, UIImagePickerControllerDelegate, UINavigationCon
     }
     
     
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         previewLayer?.frame = cameraView.bounds
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         captureSession = AVCaptureSession()
         captureSession?.sessionPreset = AVCaptureSessionPreset1920x1080
         
-        let backCamera = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
+        let backCamera = AVCaptureDevice.defaultDevice(withMediaType:AVMediaTypeVideo)
         
         var error : NSError?
         var input: AVCaptureDeviceInput!
@@ -63,7 +63,7 @@ class View2 : UIViewController, UIImagePickerControllerDelegate, UINavigationCon
                 previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
                 if let layer = previewLayer {
                     layer.videoGravity = AVLayerVideoGravityResizeAspect
-                    layer.connection.videoOrientation = AVCaptureVideoOrientation.Portrait
+                    layer.connection.videoOrientation = .portrait
                     cameraView.layer.addSublayer(layer)
                 }
                 captureSession?.startRunning()
@@ -79,22 +79,22 @@ class View2 : UIViewController, UIImagePickerControllerDelegate, UINavigationCon
     
     func didPressTakePhoto(){
         
-        if let videoConnection = stillImageOutput?.connectionWithMediaType(AVMediaTypeVideo){
-            videoConnection.videoOrientation = AVCaptureVideoOrientation.Portrait
-            stillImageOutput?.captureStillImageAsynchronouslyFromConnection(videoConnection, completionHandler: {
+        if let videoConnection = stillImageOutput?.connection(withMediaType: AVMediaTypeVideo){
+            videoConnection.videoOrientation = .portrait
+            stillImageOutput?.captureStillImageAsynchronously(from: videoConnection, completionHandler: {
                 (sampleBuffer, error) in
                 
                 if sampleBuffer != nil {
                     
-                    
+
                     let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(sampleBuffer)
-                    let dataProvider  = CGDataProviderCreateWithCFData(imageData)
-                    let cgImageRef = CGImageCreateWithJPEGDataProvider(dataProvider, nil, true, CGColorRenderingIntent.RenderingIntentDefault)!
+                    let dataProvider  = CGDataProvider.init(data:imageData as! CFData)
+                    let cgImageRef = CGImage(jpegDataProviderSource: dataProvider!, decode: nil, shouldInterpolate: true, intent: .defaultIntent)!
                     
-                    let image = UIImage(CGImage: cgImageRef, scale: 1.0, orientation: UIImageOrientation.Right)
+                    let image = UIImage.init(cgImage: cgImageRef, scale: 1.0, orientation: .right)
                     
                     self.tempImageView.image = image
-                    self.tempImageView.hidden = false
+                    self.tempImageView.isHidden = false
                     
                 }
                 
@@ -110,7 +110,7 @@ class View2 : UIViewController, UIImagePickerControllerDelegate, UINavigationCon
     
     func didPressTakeAnother(){
         if didTakePhoto == true{
-            tempImageView.hidden = true
+            tempImageView.isHidden = true
             didTakePhoto = false
             
         }
@@ -123,7 +123,7 @@ class View2 : UIViewController, UIImagePickerControllerDelegate, UINavigationCon
         
     }
     
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         didPressTakeAnother()
     }
     
